@@ -4,10 +4,53 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoinMarketCap Widget</title>
+    <title>Exemplo com Widget e Chamada Simulada</title>
+    <script type="text/javascript" src="https://files.coinmarketcap.com/static/widget/coinPriceBlock.js"></script>
 </head>
 <body>
-    <script type="text/javascript" src="https://files.coinmarketcap.com/static/widget/coinPriceBlock.js"></script>
     <div id="coinmarketcap-widget-coin-price-block" coins="2424,5690,9638,28559" currency="USD" theme="light" transparent="false" show-symbol-logo="true"></div>
+
+    <script>
+        const url = 'https://news.google.com/rss/search?q=nvidia&hl=pt-BR&gl=BR&ceid=BR:pt-419';
+        const headers = {
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 10; Pixel 4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Mobile Safari/537.36',
+            'Accept': 'application/xml'
+        };
+
+        fetch(url, {
+            method: 'GET',
+            headers: headers
+        })
+        .then(response => response.text())
+        .then(data => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(data, 'text/xml');
+            const items = xmlDoc.getElementsByTagName('item');
+
+            const newsContainer = document.createElement('div');
+            newsContainer.id = 'newsContainer';
+
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                const title = item.getElementsByTagName('title')[0].textContent;
+                const link = item.getElementsByTagName('link')[0].textContent;
+                const description = item.getElementsByTagName('description')[0].textContent;
+
+                const card = `
+                    <div class="card">
+                        <div class="card-title">${title}</div>
+                        <div class="card-description">${description}</div>
+                        <a href="${link}" target="_blank">Ler mais</a>
+                    </div>
+                `;
+                newsContainer.insertAdjacentHTML('beforeend', card);
+            }
+
+            document.body.appendChild(newsContainer);
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+        });
+    </script>
 </body>
 </html>
