@@ -4,46 +4,10 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exemplo RSS</title>
+    <title>CoinMarketCap Widget</title>
 </head>
 <body>
-    <div id="newsContainer"></div>
-
-    <script>
-        function loadRSS(url, callback) {
-            fetch(url)
-                .then(response => response.text())
-                .then(data => {
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(data, 'text/xml');
-                    callback(xmlDoc);
-                })
-                .catch(error => console.error('Error:', error));
-        }
-
-        const url = 'https://news.google.com/rss/search?q=nvidia&hl=pt-BR&gl=BR&ceid=BR%3Apt-419';
-        loadRSS(url, function(xml) {
-            const channel = xml.getElementsByTagName('channel')[0];
-            const items = channel.getElementsByTagName('item');
-
-            const newsContainer = document.getElementById('newsContainer');
-            for (let i = 0; i < items.length; i++) {
-                const item = items[i];
-                const title = item.getElementsByTagName('title')[0].textContent;
-                const link = item.getElementsByTagName('link')[0].textContent;
-                const description = item.getElementsByTagName('description')[0].textContent;
-
-                const card = document.createElement('div');
-                card.innerHTML = `
-                    <div>
-                        <h2>${title}</h2>
-                        <p>${description}</p>
-                        <a href="${link}" target="_blank">Ler mais</a>
-                    </div>
-                `;
-                newsContainer.appendChild(card);
-            }
-        });
-    </script>
+    <script type="text/javascript" src="https://files.coinmarketcap.com/static/widget/coinPriceBlock.js"></script>
+    <div id="coinmarketcap-widget-coin-price-block" coins="2424,5690,9638,28559" currency="USD" theme="light" transparent="false" show-symbol-logo="true"></div>
 </body>
 </html>
