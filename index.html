@@ -4,64 +4,76 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <style>
-        .card {
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 10px;
-            cursor: pointer;
-        }
-        .card-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .card-description {
-            color: #6f6f6f;
-        }
-    </style>
+    <title>Notícias</title>
 </head>
 <body>
     <div id="newsContainer"></div>
+
+    <!-- Adicione a tag script para carregar a biblioteca xml2js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xml2js/0.4.23/xml2js.min.js"></script>
+
     <script>
-        function loadRSS() {
-            const url = 'https://news.google.com/rss/search?q=nvidia&hl=pt-BR&gl=BR&ceid=BR%3Apt-419';
-            fetch(url)
+        const news = [];
+
+        const load = async (url) => {
+            await fetch(url)
                 .then(response => response.text())
                 .then(data => {
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(data, 'text/xml');
-                    const items = xmlDoc.querySelectorAll('item');
-                    const newsContainer = document.getElementById('newsContainer');
-                    items.forEach(function(item) {
-                        const title = item.querySelector('title').textContent;
-                        const link = item.querySelector('link').textContent;
-                        const description = item.querySelector('description').textContent.replace(/<\/?[^>]+(>|$)/g, "");
-                        const source = item.querySelector('source').textContent;
-                        const card = document.createElement('div');
-                        card.className = 'card';
-                        const titleElement = document.createElement('div');
-                        titleElement.className = 'card-title';
-                        titleElement.textContent = title;
-                        const descriptionElement = document.createElement('div');
-                        descriptionElement.className = 'card-description';
-                        descriptionElement.textContent = description;
-                        const sourceElement = document.createElement('div');
-                        sourceElement.textContent = source;
-                        card.appendChild(titleElement);
-                        card.appendChild(descriptionElement);
-                        card.appendChild(sourceElement);
-                        card.addEventListener('click', function() {
-                            window.open(link, '_blank');
+                    // Use xml2js para fazer o parse do XML
+                    const parser = new window.xml2js.Parser();
+                    parser.parseString(data, (err, result) => {
+                        result.rss.channel.forEach(channel => {
+                            channel.item.forEach(item => {
+                                news.push({
+                                    title: item.title[0],
+                                    link: item.link[0],
+                                    date: item.pubDate[0],
+                                    source: {
+                                        link: item.source[0].$.url,
+                                        title: item.source[0]._
+                                    }
+                                });
+                            });
                         });
-                        newsContainer.appendChild(card);
                     });
-                })
-                .catch(error => console.error('Error:', error));
-        }
+                });
 
-        window.onload = loadRSS;
+            return news;
+        };
+
+        const fetchData = async () => {
+            const url = 'https://news.google.com/rss/search?q=nvidia&hl=pt-BR&gl=BR&ceid=BR%3Apt-419';
+            const listDataNews = await load(url);
+
+            let listNews = [];
+            listDataNews.forEach((item) => {
+                listNews.push({
+                    title: item.title,
+                    link: item.link,
+                    date: item.date,
+                    source: {
+                        link: item.source.link,
+                        title: item.source.title
+                    }
+                });
+            });
+            
+            const newsContainer = document.getElementById('newsContainer');
+            listNews.forEach(item => {
+                const card = document.createElement('div');
+                card.innerHTML = `
+                    <div>
+                        <h2>${item.title}</h2>
+                        <p>${item.date}</p>
+                        <p>Fonte: <a href="${item.source.link}">${item.source.title}</a></p>
+                        <a href="${item.link}">Ler mais</a>
+                    </div>
+                `;
+                newsContainer.appendChild(card);
+            });
+        };
+
+        fetchData();
     </script>
 </body>
 </html>
