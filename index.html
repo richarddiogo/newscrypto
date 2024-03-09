@@ -4,76 +4,46 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notícias</title>
+    <title>Exemplo RSS</title>
 </head>
 <body>
     <div id="newsContainer"></div>
 
-    <!-- Adicione a tag script para carregar a biblioteca xml2js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xml2js/0.4.23/xml2js.min.js"></script>
-
     <script>
-        const news = [];
-
-        const load = async (url) => {
-            await fetch(url)
+        function loadRSS(url, callback) {
+            fetch(url)
                 .then(response => response.text())
                 .then(data => {
-                    // Use xml2js para fazer o parse do XML
-                    const parser = new window.xml2js.Parser();
-                    parser.parseString(data, (err, result) => {
-                        result.rss.channel.forEach(channel => {
-                            channel.item.forEach(item => {
-                                news.push({
-                                    title: item.title[0],
-                                    link: item.link[0],
-                                    date: item.pubDate[0],
-                                    source: {
-                                        link: item.source[0].$.url,
-                                        title: item.source[0]._
-                                    }
-                                });
-                            });
-                        });
-                    });
-                });
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(data, 'text/xml');
+                    callback(xmlDoc);
+                })
+                .catch(error => console.error('Error:', error));
+        }
 
-            return news;
-        };
+        const url = 'https://news.google.com/rss/search?q=nvidia&hl=pt-BR&gl=BR&ceid=BR%3Apt-419';
+        loadRSS(url, function(xml) {
+            const channel = xml.getElementsByTagName('channel')[0];
+            const items = channel.getElementsByTagName('item');
 
-        const fetchData = async () => {
-            const url = 'https://news.google.com/rss/search?q=nvidia&hl=pt-BR&gl=BR&ceid=BR%3Apt-419';
-            const listDataNews = await load(url);
-
-            let listNews = [];
-            listDataNews.forEach((item) => {
-                listNews.push({
-                    title: item.title,
-                    link: item.link,
-                    date: item.date,
-                    source: {
-                        link: item.source.link,
-                        title: item.source.title
-                    }
-                });
-            });
-            
             const newsContainer = document.getElementById('newsContainer');
-            listNews.forEach(item => {
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                const title = item.getElementsByTagName('title')[0].textContent;
+                const link = item.getElementsByTagName('link')[0].textContent;
+                const description = item.getElementsByTagName('description')[0].textContent;
+
                 const card = document.createElement('div');
                 card.innerHTML = `
                     <div>
-                        <h2>${item.title}</h2>
-                        <p>${item.date}</p>
-                        <p>Fonte: <a href="${item.source.link}">${item.source.title}</a></p>
-                        <a href="${item.link}">Ler mais</a>
+                        <h2>${title}</h2>
+                        <p>${description}</p>
+                        <a href="${link}" target="_blank">Ler mais</a>
                     </div>
                 `;
                 newsContainer.appendChild(card);
-            });
-        };
-
-        fetchData();
+            }
+        });
     </script>
 </body>
 </html>
